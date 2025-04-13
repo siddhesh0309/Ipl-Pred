@@ -1,0 +1,39 @@
+import pandas as pd
+from openpyxl import load_workbook
+
+# File paths
+template_file = "template.xlsx"
+template2_file = "template2.xlsx"
+output_file = "updated_template.xlsx"
+
+# Step 1: Read data from row 9 (headers are in row 4 → header=3, skiprows=4)
+df_template = pd.read_excel(template_file, header=3, skiprows=4)
+df_mapping = pd.read_excel(template2_file)
+
+# Step 2: Ensure Account Number is string
+df_template['Account Number'] = df_template['Account Number'].astype(str)
+df_mapping['Account Number'] = df_mapping['Account Number'].astype(str)
+
+# Step 3: Map each column using Account Number
+df_template['OCC_DESC_DEC23'] = df_template['Account Number'].map(
+    df_mapping.set_index('Account Number')['OCC_DESC_DEC23']
+)
+df_template['GHO_DEC23'] = df_template['Account Number'].map(
+    df_mapping.set_index('Account Number')['GHO_DEC23']
+)
+df_template['ACC_STATUS_DEC23'] = df_template['Account Number'].map(
+    df_mapping.set_index('Account Number')['ACC_STATUS_DEC23']
+)
+
+# Step 4: Load original workbook to preserve top rows
+book = load_workbook(template_file)
+writer = pd.ExcelWriter(output_file, engine='openpyxl')
+writer.book = book
+writer.sheets = {ws.title: ws for ws in book.worksheets}
+
+# Step 5: Write updated data from row 9 (Python row index = 8)
+df_template.to_excel(writer, index=False, header=False, startrow=8)
+
+# Save and close
+writer.save()
+writer.close()
