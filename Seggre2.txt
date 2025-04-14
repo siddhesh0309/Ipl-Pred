@@ -1,0 +1,59 @@
+import pandas as pd
+from openpyxl import load_workbook
+
+# File paths
+template_path = 'template.xlsx'
+mapping_path = 'mapping.xlsx'
+
+# Load template file (header in row 4 = index 3, data starts from row 9 = skiprows 4–8)
+df_template = pd.read_excel(template_path, sheet_name='Account Holder', header=3, skiprows=range(4, 8))
+df_mapping = pd.read_excel(mapping_path)
+
+# Ensure Account Number is string
+df_template['Account Number'] = df_template['Account Number'].astype(str)
+df_mapping['Account Number'] = df_mapping['Account Number'].astype(str)
+
+# Create mapping dictionary with only 3 required fields
+mapping_dict = df_mapping.set_index('Account Number')[['Occupation', 'GHO Code', 'Status']].to_dict('index')
+
+# Add blank columns
+df_template['Occupation'] = ''
+df_template['GHO Code'] = ''
+df_template['Status'] = ''
+
+# Fill the new columns based on Account Number
+for idx, acc in df_template['Account Number'].items():
+    if acc in mapping_dict:
+        df_template.at[idx, 'Occupation'] = mapping_dict[acc].get('Occupation', '')
+        df_template.at[idx, 'GHO Code'] = mapping_dict[acc].get('GHO Code', '')
+        df_template.at[idx, 'Status'] = mapping_dict[acc].get('Status', '')
+
+# ✅ Print first 10 rows before writing
+print("Preview of updated df_template (first 10 rows):")
+print(df_template.head(10))
+
+# Load workbook to write back without changing other data
+book = load_workbook(template_path)
+writer = pd.ExcelWriter(template_path, engine='openpyxl', mode='a', if_sheet_exists='overlay')
+writer.book = book
+writer.sheets = {ws.title: ws for ws in book.worksheets}
+sheet = writer.sheets['Account Holder']
+
+# Find the next blank column after the last one
+start_col = sheet.max_column + 1
+header_row = 4
+start_data_row = 9
+
+# Write headers
+sheet.cell(row=header_row, column=start_col, value='Occupation')
+sheet.cell(row=header_row, column=start_col + 1, value='GHO Code')
+sheet.cell(row=header_row, column=start_col + 2, value='Status')
+
+# Write values from row 9
+for i, row in enumerate(df_template[['Occupation', 'GHO Code', 'Status']].values, start=start_data_row):
+    sheet.cell(row=i, column=start_col, value=row[0])
+    sheet.cell(row=i, column=start_col + 1, value=row[1])
+    sheet.cell(row=i, column=start_col + 2, value=row[2])
+
+writer.save()
+writer.close()
