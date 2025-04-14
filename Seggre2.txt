@@ -57,3 +57,22 @@ for i, row in enumerate(df_template[['Occupation', 'GHO Code', 'Status']].values
 
 writer.save()
 writer.close()
+
+
+
+
+
+
+
+
+# Iterate and update only those 3 columns
+for idx, acc in df_template['Account Number'].items():
+    matches = df_mapping[df_mapping['Account Number'] == acc]
+    if not matches.empty:
+        first_match = matches.iloc[0]  # take first match only
+        df_template.at[idx, 'Occupation'] = first_match['OCC_DESC_DEC23']
+        df_template.at[idx, 'GHO Code'] = first_match['GHO DEC23']
+        df_template.at[idx, 'Status'] = first_match['ACC STATUS DEC23']
+
+
+
