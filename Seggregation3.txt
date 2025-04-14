@@ -61,3 +61,22 @@ for i, row in enumerate(df_template[['Occupation', 'GHO Code', 'Status']].values
 
 writer.save()
 writer.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Print rows where Occupation is 'Sea Fearer'
+sea_fearers = df_template[df_template['Occupation'].str.strip().str.lower() == 'sea fearer']
+print("Rows with Occupation = 'Sea Fearer':")
+print(sea_fearers.head(10))  # Print first 10 for preview
+
+
