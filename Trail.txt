@@ -1,0 +1,11 @@
+mask_excluded = (
+    df_template["OCC_DESC_DEC23"].str.contains("DEPENDENT", case=False, na=False) |
+    df_template["OCC_DESC_DEC23"].str.contains("SEAFARER", case=False, na=False) |
+    df_template["OCC_DESC_DEC23"].str.contains("TIN NA", case=False, na=False)
+)
+
+# Update OCC_DESC_DEC23 to INACTIVE for Status 2.0 or 3.0, excluding special cases
+df_template.loc[
+    df_template["Status of Account"].isin([2.0, 3.0]) & ~mask_excluded,
+    "OCC_DESC_DEC23"
+] = "INACTIVE"
