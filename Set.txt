@@ -1,0 +1,11 @@
+# ✅ Step 1: Filter PANs where 'tds certificate' column is #NA
+na_cert_df = unique_pan_df[
+    unique_pan_df['tds certificate'].astype(str).str.strip().str.upper() == '#NA'
+]
+
+# ✅ Step 2: Exclude these PANs from unique_pan_df
+unique_pan_df = unique_pan_df[
+    ~unique_pan_df['pan'].isin(na_cert_df['pan'])
+].reset_index(drop=True)
+
+print(f"❌ Removed {len(na_cert_df)} PANs with '#NA' in TDS Certificate column.")
