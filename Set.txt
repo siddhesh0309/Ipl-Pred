@@ -1,11 +1,31 @@
-# ✅ Step 1: Filter PANs where 'tds certificate' column is #NA
-na_cert_df = unique_pan_df[
-    unique_pan_df['tds certificate'].astype(str).str.strip().str.upper() == '#NA'
-]
+import easyocr
+from PIL import Image
+import numpy as np
 
-# ✅ Step 2: Exclude these PANs from unique_pan_df
-unique_pan_df = unique_pan_df[
-    ~unique_pan_df['pan'].isin(na_cert_df['pan'])
-].reset_index(drop=True)
+# Step 1: Load the image
+img_path = "your_image_file.png"  # Replace with your image path
+img = Image.open(img_path)
 
-print(f"❌ Removed {len(na_cert_df)} PANs with '#NA' in TDS Certificate column.")
+# Step 2: Initialize EasyOCR
+reader = easyocr.Reader(['en'])
+
+# Step 3: Run OCR with detail to get bounding box info
+results = reader.readtext(np.array(img), detail=1)
+
+# Step 4: Filter text based on size/length/position if needed
+filtered_text = []
+for (bbox, text, confidence) in results:
+    x_coords = [pt[0] for pt in bbox]
+    y_coords = [pt[1] for pt in bbox]
+    width = max(x_coords) - min(x_coords)
+    height = max(y_coords) - min(y_coords)
+
+    # Example filters (tweak as needed)
+    if confidence > 0.5 and height > 10 and width > 30:
+        filtered_text.append(text)
+
+# Step 5: Join the final result
+final_text = "\n".join(filtered_text)
+
+print("📄 Final Extracted Text (Watermark filtered):")
+print(final_text)
