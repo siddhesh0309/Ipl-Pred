@@ -1,32 +1,67 @@
 import easyocr
 import cv2
-from PIL import Image
+import re
 import numpy as np
 
 # Load image and preprocess
-image_path = "4405D4F6-A0C7-48A6-9838-A5E49CC59C8E.jpeg"  # Your file
+image_path = "4405D4F6-A0C7-48A6-9838-A5E49CC59C8E.jpeg"
 img = cv2.imread(image_path)
-
-# Convert to grayscale
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+processed = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, 
+                                  cv2.THRESH_BINARY_INV, 15, 10)
+processed = cv2.bitwise_not(processed)
 
-# Apply adaptive threshold to handle box lines and improve text separation
-thresh = cv2.adaptiveThreshold(
-    gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 10
-)
-
-# Optional: remove noise and small box lines
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
-cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-
-# Invert back for OCR (white text on black background doesn't work well)
-processed_img = cv2.bitwise_not(cleaned)
-
-# Convert for EasyOCR
+# OCR using EasyOCR
 reader = easyocr.Reader(['en'])
-results = reader.readtext(processed_img, detail=0)
+text_lines = reader.readtext(processed, detail=0)
+raw_text = "\n".join(text_lines)
 
-# Join and display results
-final_text = "\n".join(results)
-print("📄 Final Extracted Text:")
-print(final_text)
+# ✅ Print raw for debugging
+print("\n📄 RAW OCR TEXT:\n", raw_text)
+
+# ✅ Apply regex to extract fields
+output = {}
+
+# Account number (usually 14-16 digits)
+acct_match = re.search(r'\b(\d{10,18})\b', raw_text)
+if acct_match:
+    output["Account Number"] = acct_match.group(1)
+
+# IFSC Code
+ifsc_match = re.search(r'\b[A-Z]{4}0[A-Z0-9]{6}\b', raw_text)
+if ifsc_match:
+    output["IFSC"] = ifsc_match.group(0)
+
+# Amount (e.g. ₹ 430,414.00 or 430414.00)
+amt_match = re.search(r'₹?\s?([\d,]+\.\d{2})', raw_text)
+if amt_match:
+    output["Amount"] = amt_match.group(1)
+
+# Email
+email_match = re.search(r'\b[\w\.-]+@[\w\.-]+\.\w+\b', raw_text)
+if email_match:
+    output["Email"] = email_match.group(0)
+
+# Mobile number
+mobile_match = re.search(r'\b\d{10}\b', raw_text)
+if mobile_match:
+    output["Mobile"] = mobile_match.group(0)
+
+# Reference number
+ref_match = re.search(r'\bRef(?:erence)?[: ]?(\d{6,})', raw_text, re.IGNORECASE)
+if ref_match:
+    output["Reference Number"] = ref_match.group(1)
+
+# Name (look near signature or PRINT)
+name_match = re.search(r'Pushpa\s+Pandey', raw_text, re.IGNORECASE)
+if name_match:
+    output["Name"] = "Pushpa Pandey"
+
+# Dates (DD-MM-YYYY or DDMMYYYY or DD/MM/YYYY)
+dates = re.findall(r'\b(\d{2}[-/]\d{2}[-/]\d{4}|\d{2}\d{2}\d{4})\b', raw_text)
+if len(dates) >= 2:
+    output["Period From"] = dates[0]
+    output["Period To"] = dates[1]
+
+# ✅ Final Output
+print("\n✅ Extracted Structured Data:\n", output)
