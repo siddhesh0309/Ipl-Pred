@@ -1,1 +1,37 @@
-no data
+from openpyxl.utils.dataframe import dataframe_to_rows
+
+# === Append to buyfp (no overwrite) and avoid duplicate BUSYDT ===
+if 'buyfp' in wb.sheetnames:
+    ws = wb['buyfp']
+    
+    # Read existing buyfp as DataFrame
+    existing_df = pd.read_excel(fp, sheet_name='buyfp')
+    
+    # Normalize BUSYDT format from existing file (e.g. 01Jul2025)
+    existing_df['BUSYDT'] = pd.to_datetime(existing_df['BUSYDT'], format="%d%b%Y", errors='coerce')
+    existing_dates = existing_df['BUSYDT'].dt.date.dropna().unique()
+
+    # Normalize BUSYDT in new data (bmon)
+    bmon['BUSYDT'] = pd.to_datetime(bmon['BUSYDT'], errors='coerce')
+    bmon['BUSYDT_date'] = bmon['BUSYDT'].dt.date
+
+    # Filter new data not already present
+    filtered_bmon = bmon[~bmon['BUSYDT_date'].isin(existing_dates)].drop(columns=['BUSYDT_date'])
+
+    # Append filtered rows
+    for row in dataframe_to_rows(filtered_bmon, index=False, header=False):
+        ws.append(row)
+else:
+    # Sheet doesn't exist, create fresh
+    with pd.ExcelWriter(fp, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+        bmon.to_excel(writer, sheet_name='buyfp', index=False)
+
+# === Format date columns in monthly file ===
+wb = load_workbook(fp)
+if 'vfin' in wb.sheetnames:
+    format_date_column_append(wb['vfin'], 18)
+
+if 'buyfp' in wb.sheetnames:
+    format_date_column(wb['buyfp'], 'BUSYDT')
+
+wb.save(fp)
