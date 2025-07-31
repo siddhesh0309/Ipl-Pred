@@ -1,0 +1,18 @@
+import pandas as pd
+
+# Read the files (adjust file names and extensions if needed)
+csb = pd.read_excel('csb.xlsx')  # or pd.read_csv('csb.csv')
+throughput = pd.read_excel('throughput.xlsx')  # or pd.read_csv('throughput.csv')
+
+# Ensure the column names are stripped of whitespace
+csb.columns = csb.columns.str.strip()
+throughput.columns = throughput.columns.str.strip()
+
+# Create a mapping from Consumer Reference in throughput to Status
+status_map = throughput.set_index('Consumer Reference')['Status'].to_dict()
+
+# Add Mandate Status column to csb by mapping Consumer Reference
+csb['Mandate Status'] = csb['Consumer Reference'].map(status_map)
+
+# Save the updated csb to a new file if needed
+csb.to_excel('csb_with_mandate_status.xlsx', index=False)
