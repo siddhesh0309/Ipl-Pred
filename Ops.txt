@@ -29,3 +29,10 @@ ach_df = csb.drop(columns=[col for col in columns_to_drop if col in csb.columns]
 
 
 
+ach_df = ach_df[ach_df['Mandate Status'].notna()]  # Remove blank/null
+ach_df = ach_df[~ach_df['Mandate Status'].str.strip().str.lower().eq('rejected')]
+
+
+
+
+
