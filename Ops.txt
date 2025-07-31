@@ -80,6 +80,37 @@ with open('c.txt', 'w') as f:
 
 
 
+with open('c.txt', 'r') as f:
+    lines = f.readlines()
+
+if len(lines) >= 2:
+    header_1 = lines[0].rstrip('\n')
+    header_2 = lines[1].rstrip('\n')
+
+    # Replace last number in second line with actual row count (preserving spacing)
+    new_count = str(len(ach_df)).zfill(2)
+    header_2_updated = re.sub(r'(\d+)\s*$', new_count, header_2)
+
+    # Combine updated headers
+    updated_txt = header_1 + '\n' + header_2_updated + '\n'
+
+    # Convert ach_df to CSV-style (comma-separated)
+    ach_csv = ach_df.to_csv(index=False)
+
+    # Write everything back
+    with open('c.txt', 'w') as f:
+        f.write(updated_txt)
+        f.write(ach_csv)
+else:
+    print("❌ Error: c.txt must have at least two lines (file header + column header).")
+
+
+
+
+
+
+
+
 
 
 
