@@ -110,6 +110,15 @@ else:
 
 
 
+txt_csv_filename = f'txt_content_{today_str}.csv'
+    with open(txt_csv_filename, 'w') as f:
+        f.write(full_text)
+
+
+
+
+
+
 
 
 
