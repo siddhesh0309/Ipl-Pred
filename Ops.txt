@@ -35,4 +35,28 @@ ach_df = ach_df[~ach_df['Mandate Status'].str.strip().str.lower().eq('rejected')
 
 
 
+# === Step 9: Update and Write to c.txt ===
+with open('c.txt', 'r') as f:
+    header_line = f.readline().strip()
+
+# Replace last number in header line with actual row count
+parts = header_line.split()
+if parts and parts[-1].isdigit():
+    parts[-1] = str(len(ach_df)).zfill(2)
+header_line_updated = ' '.join(parts)
+
+# Convert ACH data to CSV-style (comma-separated, with header)
+ach_csv_text = ach_df.to_csv(index=False)
+
+# Combine header + ach data
+final_text = header_line_updated + '\n' + ach_csv_text
+
+# Overwrite c.txt with updated header and data
+with open('c.txt', 'w') as f:
+    f.write(final_text)
+
+
+
+
+
 
