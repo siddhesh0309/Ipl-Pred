@@ -60,3 +60,29 @@ with open('c.txt', 'w') as f:
 
 
 
+
+# === Step 9: Read and modify single-line header in c.txt ===
+with open('c.txt', 'r') as f:
+    header_line = f.readline().rstrip()  # One single line with variable spacing
+
+# Use regex to replace only the last numeric token (trailing row count)
+new_count = str(len(ach_df)).zfill(2)
+header_line_updated = re.sub(r'(\d+)\s*$', new_count, header_line)
+
+# === Step 10: Convert ACH data to CSV format ===
+ach_csv = ach_df.to_csv(index=False)
+
+# === Step 11: Write updated header + CSV data back to c.txt ===
+with open('c.txt', 'w') as f:
+    f.write(header_line_updated + '\n')
+    f.write(ach_csv)
+
+
+
+
+
+
+
+
+
+
