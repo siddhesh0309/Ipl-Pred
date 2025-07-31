@@ -16,3 +16,10 @@ csb['Mandate Status'] = csb['Consumer Reference'].map(status_map)
 
 # Save the updated csb to a new file if needed
 csb.to_excel('csb_with_mandate_status.xlsx', index=False)
+
+
+
+if 'Date' in csb.columns:
+    csb['Date'] = pd.to_datetime(csb['Date'], errors='coerce').dt.strftime('%d/%m/2025')
+
+
