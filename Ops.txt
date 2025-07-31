@@ -23,3 +23,9 @@ if 'Date' in csb.columns:
     csb['Date'] = pd.to_datetime(csb['Date'], errors='coerce').dt.strftime('%d/%m/2025')
 
 
+# === Step 6: Create ACH file by removing specific columns ===
+columns_to_drop = ['acct', 'user date', 'userdate1']
+ach_df = csb.drop(columns=[col for col in columns_to_drop if col in csb.columns])
+
+
+
