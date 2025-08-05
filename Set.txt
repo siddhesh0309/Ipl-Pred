@@ -22,3 +22,13 @@ else:
     # No sheet exists, write from scratch
     with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
         buyfp_month.to_excel(writer, sheet_name='buyfp', index=False)
+
+
+
+
+
+
+
+sudo mv /usr/bin/bsdtar /usr/bin/bsdtar_old || true
+sudo ln -sf /usr/local/bin/bsdtar /usr/bin/bsdtar
+
